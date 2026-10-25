@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Aprende Jugando · 4 y 6 años</title>
+
+<!-- ===== PWA ===== -->
+<meta name="theme-color" content="#2EC4B6">
+<meta name="description" content="Juegos de contar, sumar, restar y leer para niños de 4 y 6 años.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Aprende Jugando">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Fuentes escolares: cada familia en su propio link para que un fallo no tumbe al resto -->
+<link href="https://fonts.googleapis.com/css2?family=Playwrite+ES:wght@100..400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playwrite+ES+Guides&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+
+<!-- ===== Estadísticas de uso (opcional) =====
+     Vacío = no se mide nada y no se carga ningún script externo.
+     Para activarlas: crea una cuenta gratuita en goatcounter.com y escribe aquí
+     tu código (si tu panel es https://pablo.goatcounter.com, pon 'pablo').
+     GoatCounter no usa cookies ni guarda IPs: solo cuenta visitas y eventos. -->
+<script>window.GC_CODE = '';</script>
+
+<style>
+  :root{
+    --sky:#EAF6FF; --sand:#FFF6E5;
+    --ink:#20314A;
+    --mint:#2EC4B6; --mint-d:#1E9A8E;
+    --coral:#FF5D73; --coral-d:#D83E54;
+    --sun:#FFB703; --sun-d:#D99300;
+    --violet:#8367F0; --violet-d:#6446D1;
+    --blue:#2A9DF4; --blue-d:#1C76C0;
+  }
+  *{ -webkit-tap-highlight-color: transparent; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family:'Fredoka', system-ui, sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(900px 500px at 15% -10%, #FFFFFF 0%, transparent 60%),
+      linear-gradient(170deg, var(--sky) 0%, var(--sand) 100%);
+    background-attachment:fixed;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    overflow-x:hidden;
+    user-select:none;
+  }
+  .font-body{ font-family:'Outfit', system-ui, sans-serif; }
+
+
+
+  /* ---- Botones 3D ---- */
+  .btn3d{
+    border-radius:18px; border:0; cursor:pointer; color:#fff;
+    font-family:'Fredoka',sans-serif; font-weight:600; line-height:1;
+    box-shadow:0 6px 0 var(--sh), 0 8px 14px rgba(32,49,74,.18);
+    transition:transform .07s ease, box-shadow .07s ease, filter .15s ease;
+  }
+  .btn3d:active{ transform:translateY(5px); box-shadow:0 1px 0 var(--sh), 0 2px 6px rgba(32,49,74,.18); }
+  .btn3d:focus-visible{ outline:4px solid #20314A; outline-offset:3px; }
+  .b-mint{ background:var(--mint); --sh:var(--mint-d); }
+  .b-coral{ background:var(--coral); --sh:var(--coral-d); }
+  .b-sun{ background:var(--sun); --sh:var(--sun-d); color:#4A3200; }
+  .b-violet{ background:var(--violet); --sh:var(--violet-d); }
+  .b-blue{ background:var(--blue); --sh:var(--blue-d); }
+  .b-white{ background:#fff; --sh:#C9D6E6; color:var(--ink); }
+
+  /* ---- Tipografías escolares ----
+     Declaradas DESPUÉS de .btn3d para que ganen en la cascada también dentro de los botones.
+     .ligada  → letra enlazada del modelo español (Playwrite España)
+     .imprenta→ letra de palo de lectoescritura, con la 'a' y la 'g' de una sola panza (Andika)
+     .guia    → la ligada con las pautas (línea base y altura de la x) para la pizarra de trazo */
+  .ligada, button.ligada{ font-family:'Playwrite ES','Playwrite ES Guides',cursive; font-weight:400; }
+  .imprenta, button.imprenta{ font-family:'Andika','Fredoka',sans-serif; font-weight:700; }
+  .guia{ font-family:'Playwrite ES Guides','Playwrite ES',cursive; font-weight:400; }
+  .letra-xl{ font-size:clamp(44px,13vw,68px); line-height:1.5; }
+  #trace-canvas{ touch-action:none; }
+
+  .card{ background:#fff; border-radius:28px; box-shadow:0 10px 0 rgba(32,49,74,.08), 0 18px 34px rgba(32,49,74,.12); }
+
+  /* ---- Feedback ---- */
+  @keyframes pop{ 0%{transform:scale(1)} 45%{transform:scale(1.12)} 100%{transform:scale(1)} }
+  @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-9px)} 75%{transform:translateX(9px)} }
+  @keyframes floatIn{ from{opacity:0; transform:translateY(14px) scale(.96)} to{opacity:1; transform:none} }
+  @keyframes bob{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+  .ok{ animation:pop .35s ease; background:var(--mint)!important; --sh:var(--mint-d)!important; color:#fff!important; }
+  .no{ animation:shake .35s ease; background:var(--coral)!important; --sh:var(--coral-d)!important; color:#fff!important; }
+  .enter{ animation:floatIn .28s ease both; }
+  .bob{ animation:bob 2.4s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none!important; transition:none!important; } }
+
+  /* ---- Rejilla de frutas ---- */
+  .fruit{ font-size:clamp(30px,8.5vw,52px); line-height:1; }
+
+  /* ---- Casillas tabla del 100 ---- */
+  .cell{
+    display:flex; align-items:center; justify-content:center;
+    border-radius:18px; font-weight:700;
+    font-size:clamp(22px,7vw,36px);
+    min-height:clamp(62px,17vw,92px);
+    background:#F1F6FC; border:3px solid #DCE7F4; color:var(--ink);
+  }
+  .cell-q{ background:#FFF2CC; border-color:var(--sun); color:var(--sun-d); }
+  .cell-c{ background:var(--violet); border-color:var(--violet-d); color:#fff; }
+
+  .sheet{ animation:floatIn .25s ease both; }
+  .hidden{ display:none !important; }
+  ::-webkit-scrollbar{ width:8px; height:8px }
+  ::-webkit-scrollbar-thumb{ background:#C9D6E6; border-radius:8px }
+</style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+<!-- ============ CABECERA COMPACTA (nunca se desborda) ============ -->
+<header id="bar" class="sticky top-0 z-30 w-full bg-white/85 backdrop-blur border-b-4 border-white shadow-sm"
+        style="padding-top:env(safe-area-inset-top,0px)">
+  <div class="mx-auto w-full max-w-3xl flex flex-wrap items-center gap-1.5 px-2 py-1.5 min-w-0">
+
+    <button id="btn-menu" aria-label="Menú" class="btn3d b-white shrink-0 w-11 h-11 text-xl">☰</button>
+    <button id="btn-stats" aria-label="Estadísticas" class="btn3d b-blue shrink-0 w-11 h-11 text-xl">📊</button>
+    <button id="btn-chest" aria-label="Cofre de trofeos" class="btn3d b-violet shrink-0 w-11 h-11 text-xl">🎁</button>
+
+    <button id="coin-chip" aria-label="Jugador y monedas"
+            class="shrink-0 flex items-center gap-1 h-11 px-2.5 rounded-2xl bg-[#FFF2CC] border-[3px] border-[#FFD86B]">
+      <span id="who-emoji" class="text-lg leading-none">🧒</span>
+      <span class="text-lg leading-none">🪙</span>
+      <span id="coin-count" class="text-lg font-semibold leading-none tabular-nums">0</span>
+    </button>
+
+    <div id="title-chip" class="flex-1 min-w-0 h-11 flex items-center justify-center px-1">
+      <span id="screen-title" class="truncate text-base sm:text-lg font-semibold text-[#5A6B86]">Aprende jugando</span>
+    </div>
+
+    <button id="btn-home" aria-label="Inicio" class="btn3d b-mint shrink-0 w-11 h-11 text-xl">🏠</button>
+  </div>
+</header>
+
+<!-- ============ CONTENIDO ============ -->
+<main id="app" class="flex-1 w-full max-w-3xl mx-auto px-3 py-4 pb-10"></main>
+
+<!-- ============ PANELES ============ -->
+<div id="overlay" class="hidden fixed inset-0 z-40 bg-[#20314A]/55 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
+  <div id="sheet" class="sheet card w-full max-w-md max-h-[86vh] overflow-y-auto p-5"></div>
+</div>
+
+<!-- Invitación a instalar la app -->
+<div id="install-bar" class="hidden fixed inset-x-0 bottom-0 z-40 px-3 pt-3"
+     style="padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px)">
+  <div class="card sheet mx-auto max-w-md p-3">
+    <div class="flex items-center gap-3 min-w-0">
+      <img src="icon-192.png" alt="" class="w-12 h-12 rounded-2xl shrink-0">
+      <div class="min-w-0 flex-1">
+        <div class="font-bold leading-tight">Instálalo en el móvil</div>
+        <div id="install-text" class="font-body text-xs text-[#5A6B86] leading-snug">
+          Se abre como una app, a pantalla completa, y funciona sin internet.
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mt-3">
+      <button id="install-no" class="btn3d b-white py-3 text-sm font-body">Ahora no</button>
+      <button id="install-yes" class="btn3d b-mint py-3 text-base">Instalar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Aviso de subida de nivel -->
+<div id="levelup" class="hidden fixed inset-0 z-50 bg-[#20314A]/60 flex items-center justify-center p-4">
+  <div class="card enter p-7 text-center max-w-xs w-full">
+    <div class="text-7xl bob">🏆</div>
+    <h2 class="mt-3 text-3xl font-bold">¡Nivel <span id="lv-num">2</span>!</h2>
+    <p id="lv-text" class="font-body mt-1 text-[#5A6B86]">Ahora los retos son más grandes.</p>
+    <button class="btn3d b-mint w-full mt-5 py-4 text-xl" onclick="UI.closeLevelUp()">Seguir jugando</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   APRENDE JUGANDO — app educativa para 4 y 6 años
+   Estructura: Store · Audio · FX · UI · Juegos · PWA
+   ========================================================================= */
+
+/* ------------------------------ 1. ESTADO ------------------------------
+   Dos jugadores independientes: cada niño tiene sus monedas, sus aciertos,
+   su tiempo, sus niveles y su cofre. Entrar en un modo activa su perfil.   */
+const KEY  = 'aprende-jugando-v3';
+const OLD2 = 'aprende-jugando-v2';
+const OLD1 = 'aprende-jugando-v1';
+
+/* Categorías por rango de edad, no por edad exacta: se solapan en los 5 años. */
+const CATS = {
+  c35: { id:'c35', label:'3-5 años', emoji:'🍎', desc:'Contar, conocer letras y trazarlas' },
+  c57: { id:'c57', label:'5-7 años', emoji:'🔢', desc:'Tabla del 100, sumas, duelo y palabras' }
+};
+const AVATARS = ['🦊','🐼','🐸','🦄','🐯','🐵','🐧','🦁','🐨','🐙'];
+
+const newPlayer = (name, cat, avatar) => ({
+  id: 'j' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+  name, cat, avatar: avatar || pick(AVATARS),
+  created: Date.now(),
+  coins: 0, correct: 0, attempts: 0, seconds: 0,
+  level4: 1, streak4: 0,                       // conteo
+  letras: { level:1, dominadas:[] },
+  tipo: 'ligada', traceIndex: 0,
+  level6: { sumas:1, vecinos:1, palabras:1 },
+  vecinosHits: 0,
+  hitsSincePrize: 0,                           // aciertos hacia el próximo cofre
+  duelRecord: 0,
+  trophies: [],
+  lastPlayed: null
+});
+
+const Store = {
+  all: { active:null, players:[] },
+  ghost: null,                                 // perfil vacío si todavía no hay jugador
+
+  /** Jugador activo. El resto del código sigue usando Store.s sin enterarse. */
+  get s(){
+    return this.all.players.find(p => p.id === this.all.active) || this.ghost;
+  },
+  get hasPlayer(){ return this.all.players.some(p => p.id === this.all.active); },
+  get cat(){ return CATS[this.s.cat] || CATS.c35; },
+
+  playersIn(cat){ return this.all.players.filter(p => p.cat === cat); },
+  byId(id){ return this.all.players.find(p => p.id === id); },
+
+  load(){
+    this.ghost = newPlayer('—', 'c35', '🙂');
+    this.all = { active:null, players:[] };
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(raw){
+        const d = JSON.parse(raw) || {};
+        this.all.players = Array.isArray(d.players) ? d.players : [];
+        this.all.active  = d.active || null;
+      }else{
+        this.migrar();
+      }
+    }catch(e){ this.all = { active:null, players:[] }; }
+    this.all.players.forEach(p => this.normalize(p));
+    if(!this.hasPlayer) this.all.active = this.all.players.length ? this.all.players[0].id : null;
+  },
+
+  /** Recupera las partidas de versiones anteriores como jugadores con nombre. */
+  migrar(){
+    try{
+      const v2 = JSON.parse(localStorage.getItem(OLD2) || 'null');
+      if(v2){
+        if(v2.p4 && (v2.p4.correct || v2.p4.coins)) this.all.players.push(Object.assign(newPlayer('Peque','c35','🦊'), v2.p4, { cat:'c35' }));
+        if(v2.p6 && (v2.p6.correct || v2.p6.coins)) this.all.players.push(Object.assign(newPlayer('Mayor','c57','🐼'), v2.p6, { cat:'c57' }));
+        return;
+      }
+      const v1 = JSON.parse(localStorage.getItem(OLD1) || 'null');
+      if(v1 && (v1.correct || v1.coins)) this.all.players.push(Object.assign(newPlayer('Peque','c35','🦊'), v1, { cat:'c35' }));
+    }catch(e){}
+  },
+
+  /** Rellena campos que puedan faltar en datos guardados antiguos. */
+  normalize(p){
+    if(!p.id) p.id = 'j' + Math.random().toString(36).slice(2, 10);
+    if(!p.name) p.name = 'Jugador';
+    if(!CATS[p.cat]) p.cat = 'c35';
+    if(!p.avatar) p.avatar = pick(AVATARS);
+    if(!p.letras || typeof p.letras !== 'object') p.letras = { level:1, dominadas:[] };
+    if(!Array.isArray(p.letras.dominadas)) p.letras.dominadas = [];
+    if(!p.letras.level) p.letras.level = 1;
+    if(!p.level6) p.level6 = { sumas:1, vecinos:1, palabras:1 };
+    if(!Array.isArray(p.trophies)) p.trophies = [];
+    ['coins','correct','attempts','seconds','level4','streak4','vecinosHits','hitsSincePrize','duelRecord','traceIndex']
+      .forEach(k => { if(typeof p[k] !== 'number') p[k] = (k === 'level4' ? 1 : 0); });
+  },
+
+  save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(this.all)); }catch(e){}
+  },
+
+  use(id){
+    this.all.active = id;
+    this.save();
+    UI.paintCoins();
+  },
+
+  add(name, cat, avatar){
+    const p = newPlayer(name.trim().slice(0, 14) || 'Jugador', cat, avatar);
+    this.all.players.push(p);
+    this.all.active = p.id;
+    this.save();
+    UI.paintCoins();
+    return p;
+  },
+
+  rename(id, name){
+    const p = this.byId(id);
+    if(p){ p.name = name.trim().slice(0, 14) || p.name; this.save(); }
+  },
+
+  /** Pone a cero la puntuación pero conserva al jugador. */
+  resetPlayer(id){
+    const p = this.byId(id);
+    if(!p) return;
+    const limpio = newPlayer(p.name, p.cat, p.avatar);
+    limpio.id = p.id; limpio.created = p.created;
+    this.all.players[this.all.players.indexOf(p)] = limpio;
+    this.save();
+    UI.paintCoins();
+  },
+
+  /** Lo borra del histórico. */
+  removePlayer(id){
+    this.all.players = this.all.players.filter(p => p.id !== id);
+    if(!this.hasPlayer) this.all.active = this.all.players.length ? this.all.players[0].id : null;
+    this.save();
+    UI.paintCoins();
+  },
+
+  addCoins(n){ this.s.coins += n; UI.paintCoins(); this.save(); },
+
+  score(ok){
+    this.s.attempts++;
+    if(ok){
+      this.s.correct++;
+      this.s.coins++;
+      this.s.hitsSincePrize++;
+      UI.paintCoins();
+    }
+    this.s.lastPlayed = Date.now();
+    this.save();
+  },
+
+  accuracy(){
+    return this.s.attempts ? Math.round(this.s.correct / this.s.attempts * 100) : 0;
+  }
+};
+
+/* Contador de tiempo de juego (solo con la pestaña visible) */
+setInterval(() => {
+  if(document.visibilityState === 'visible' && Game.current){
+    Store.s.seconds++;
+    if(Store.s.seconds % 10 === 0) Store.save();
+  }
+}, 1000);
+window.addEventListener('pagehide', () => Store.save());
+
+/* ------------------------------ 2. SONIDO ------------------------------ */
+const Audio_ = {
+  ctx: null,
+  on: true,
+  init(){
+    if(!this.ctx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) this.ctx = new AC();
+    }
+    if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(freq, start, dur, type = 'sine', vol = .22){
+    if(!this.on || !this.ctx) return;
+    const t0 = this.ctx.currentTime + start;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(this.ctx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.05);
+  },
+  tap(){ this.tone(520, 0, .08, 'triangle', .14); },
+  good(){ [[659,0],[784,.09],[1047,.18]].forEach(([f,t]) => this.tone(f, t, .18, 'triangle')); },
+  bad(){ this.tone(210, 0, .18, 'sawtooth', .12); this.tone(150, .1, .22, 'sawtooth', .12); },
+  coin(){ this.tone(988, 0, .07, 'square', .12); this.tone(1319, .07, .12, 'square', .12); },
+  level(){ [523,659,784,1047,1319].forEach((f,i) => this.tone(f, i * .1, .25, 'triangle', .2)); },
+  tick(){ this.tone(880, 0, .05, 'square', .08); }
+};
+document.addEventListener('pointerdown', () => Audio_.init(), { once:true });
+
+/** Lee un texto en voz alta (los de 4 años todavía no leen la consigna). */
+function say(text){
+  if(!Audio_.on || !('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-ES'; u.rate = .85; u.pitch = 1.1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ------------------------------ 3. EFECTOS ----------------------------- */
+const FX = {
+  burst(){
+    if(typeof confetti !== 'function') return;
+    confetti({ particleCount: 70, spread: 72, origin:{ y:.7 }, scalar:1.1,
+      colors:['#FFB703','#2EC4B6','#FF5D73','#8367F0','#2A9DF4'] });
+  },
+  party(){
+    if(typeof confetti !== 'function') return;
+    const end = Date.now() + 1200;
+    (function frame(){
+      confetti({ particleCount:5, angle:60, spread:60, origin:{x:0, y:.8} });
+      confetti({ particleCount:5, angle:120, spread:60, origin:{x:1, y:.8} });
+      if(Date.now() < end) requestAnimationFrame(frame);
+    })();
+  }
+};
+
+/* ------------------------------ 4. UTILES ------------------------------ */
+const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = arr => arr.map(v => [Math.random(), v]).sort((a,b) => a[0]-b[0]).map(v => v[1]);
+
+/** Devuelve `n` opciones barajadas que incluyen la respuesta. */
+function options(answer, n, min, max){
+  const set = new Set([answer]);
+  let guard = 0;
+  while(set.size < n && guard++ < 200){
+    const d = rnd(1, Math.max(2, Math.round((max - min) / 3)));
+    const v = Math.random() < .5 ? answer - d : answer + d;
+    if(v >= min && v <= max) set.add(v);
+  }
+  while(set.size < n) set.add(rnd(min, max));
+  return shuffle([...set]);
+}
+
+/** Los nombres los escribe el usuario: hay que escaparlos antes de inyectarlos. */
+function esc(t){
+  return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function fmtTime(sec){
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  return h ? `${h} h ${m} min` : (m ? `${m} min ${s} s` : `${s} s`);
+}
+
+/* ------------------------------ 5. TROFEOS ----------------------------- */
+const TROPHIES = [
+  { id:'unicornio', emoji:'🦄', name:'Unicornio',  cost:15 },
+  { id:'cohete',    emoji:'🚀', name:'Cohete',     cost:30 },
+  { id:'dino',      emoji:'🦖', name:'Dinosaurio', cost:50 },
+  { id:'dragon',    emoji:'🐉', name:'Dragón',     cost:75 },
+  { id:'castillo',  emoji:'🏰', name:'Castillo',   cost:110 },
+  { id:'corona',    emoji:'👑', name:'Corona',     cost:150 },
+  { id:'ballena',   emoji:'🐳', name:'Ballena',    cost:200 },
+  { id:'arcoiris',  emoji:'🌈', name:'Arcoíris',   cost:260 }
+];
+
+/* ------------------------------ 6. INTERFAZ ---------------------------- */
+const app = document.getElementById('app');
+
+const UI = {
+  paintCoins(){
+    document.getElementById('coin-count').textContent = Store.s.coins;
+    document.getElementById('who-emoji').textContent = Store.hasPlayer ? Store.s.avatar : '👤';
+  },
+
+  title(t){ document.getElementById('screen-title').textContent = t; },
+
+  render(html, titleText){
+    app.innerHTML = html;
+    app.firstElementChild && app.firstElementChild.classList.add('enter');
+    if(titleText) this.title(titleText);
+    window.scrollTo(0, 0);
+  },
+
+  openSheet(html){
+    document.getElementById('sheet').innerHTML = html;
+    document.getElementById('overlay').classList.remove('hidden');
+  },
+  closeSheet(){ document.getElementById('overlay').classList.add('hidden'); },
+
+  levelUp(n, text){
+    document.getElementById('lv-num').textContent = n;
+    document.getElementById('lv-text').textContent = text;
+    document.getElementById('levelup').classList.remove('hidden');
+    Audio_.level(); FX.party();
+  },
+  closeLevelUp(){
+    document.getElementById('levelup').classList.add('hidden');
+    Game.next();
+  },
+
+  /* Marcador que aparece dentro de cada juego */
+  scorebar(label, right){
+    return `<div class="font-body flex items-center justify-between gap-2 text-sm text-[#5A6B86] mb-3 px-1">
+      <span class="truncate">${label}</span><span class="shrink-0 font-semibold">${right}</span></div>`;
+  }
+};
+
+/* --------------------------- 7. PANELES ------------------------------- */
+function panelStats(){
+  if(!Store.hasPlayer) return panelJugador();
+  const s = Store.s;
+  const row = (icon, label, value) => `
+    <div class="font-body flex items-center gap-3 py-3 border-b border-[#EDF2F8] last:border-0">
+      <span class="text-2xl w-8 text-center">${icon}</span>
+      <span class="flex-1 text-[#5A6B86]">${label}</span>
+      <span class="font-semibold text-lg text-[#20314A] tabular-nums">${value}</span>
+    </div>`;
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold mb-1">${Store.s.avatar} ${esc(Store.s.name)}</h2>
+    <p class="font-body text-sm text-[#5A6B86] mb-3">${Store.cat.label} · cada jugador tiene sus propios datos.</p>
+    ${row('⏱️','Tiempo jugado', fmtTime(s.seconds))}
+    ${row('✅','Aciertos', s.correct)}
+    ${row('🎯','Precisión', Store.accuracy() + '%')}
+    ${row('🧮','Respuestas totales', s.attempts)}
+    ${row('🪙','Monedas', s.coins)}
+    ${row('🤠','Récord del duelo', s.duelRecord)}
+    ${row('🍎','Nivel de conteo', s.level4)}
+    ${row('🔡','Letras aprendidas', `${s.letras.dominadas.length} de ${ABC.length}`)}
+    <div class="grid grid-cols-2 gap-2 mt-5">
+      <button class="btn3d b-white py-4 text-base" onclick="confirmReset()">Reiniciar</button>
+      <button class="btn3d b-mint py-4 text-base" onclick="UI.closeSheet()">Cerrar</button>
+    </div>`);
+}
+
+function confirmReset(){
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold">¿Reiniciar a ${esc(Store.s.name)}?</h2>
+    <p class="font-body text-[#5A6B86] mt-2">Se pone su puntuación a cero. Los demás jugadores no se tocan.</p>
+    <div class="grid grid-cols-2 gap-2 mt-5">
+      <button class="btn3d b-coral py-4" onclick="Store.resetPlayer(Store.all.active); UI.closeSheet(); Home();">Sí, reiniciar</button>
+      <button class="btn3d b-white py-4" onclick="panelStats()">Volver</button>
+    </div>`);
+}
+
+function panelChest(){
+  if(!Store.hasPlayer) return panelJugador();
+  const owned = Store.s.trophies;
+  const items = TROPHIES.map(t => {
+    const has = owned.includes(t.id);
+    const can = Store.s.coins >= t.cost;
+    return `<div class="rounded-2xl p-3 text-center border-[3px] ${has ? 'bg-[#E9FBF8] border-[#2EC4B6]' : 'bg-[#F6F9FD] border-[#E3EAF3]'}">
+      <div class="text-4xl ${has ? '' : 'grayscale opacity-35'}">${t.emoji}</div>
+      <div class="font-body text-xs mt-1 text-[#5A6B86] truncate">${t.name}</div>
+      ${ has
+        ? `<div class="font-body text-xs font-semibold text-[#1E9A8E] mt-1">Tuyo</div>`
+        : `<button class="btn3d ${can ? 'b-sun' : 'b-white opacity-60'} w-full mt-2 py-2 text-sm"
+             ${can ? `onclick="unlock('${t.id}')"` : 'disabled'}>🪙 ${t.cost}</button>` }
+    </div>`;
+  }).join('');
+
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold">Cofre de ${esc(Store.s.name)} ${Store.s.avatar}</h2>
+    <p class="font-body text-sm text-[#5A6B86] mb-4">Tiene <b>${Store.s.coins}</b> monedas. Gana más acertando.</p>
+    <div class="grid grid-cols-3 gap-2">${items}</div>
+    <button class="btn3d b-mint w-full mt-5 py-4 text-lg" onclick="UI.closeSheet()">Cerrar</button>`);
+}
+
+function unlock(id){
+  const t = TROPHIES.find(x => x.id === id);
+  if(!t || Store.s.coins < t.cost || Store.s.trophies.includes(id)) return;
+  Store.s.coins -= t.cost;
+  Store.s.trophies.push(id);
+  Store.save(); UI.paintCoins(); Audio_.level(); FX.party();
+  panelChest();
+}
+
+/* --------- Jugadores: elegir, crear, clasificación, borrar ------------- */
+
+/** Barra que recuerda quién está jugando dentro de cada categoría. */
+function cabeceraJugador(cat){
+  return `<div class="card p-3 flex items-center gap-3">
+    <span class="text-3xl shrink-0">${Store.s.avatar}</span>
+    <span class="min-w-0 flex-1">
+      <span class="block font-bold truncate">${esc(Store.s.name)}</span>
+      <span class="block font-body text-xs text-[#5A6B86] truncate">${CATS[cat].label} · 🪙 ${Store.s.coins} · 🎁 ${Store.s.trophies.length}</span>
+    </span>
+    <button class="btn3d b-white shrink-0 px-3 py-2 text-sm font-body" onclick="panelPlayers('${cat}')">Cambiar</button>
+  </div>`;
+}
+
+/** Ficha de un jugador dentro de un panel de selección. */
+function fichaJugador(p){
+  const activo = Store.all.active === p.id;
+  return `<button class="btn3d ${activo ? 'b-mint' : 'b-white'} w-full p-3 text-left" onclick="jugarComo('${p.id}')">
+    <div class="flex items-center gap-3">
+      <span class="text-3xl shrink-0">${p.avatar}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block text-lg font-bold truncate">${esc(p.name)}</span>
+        <span class="block font-body text-sm opacity-85">🪙 ${p.coins} · 🎁 ${p.trophies.length} · ✅ ${p.correct}</span>
+      </span>
+      ${activo ? '<span class="font-body text-xs shrink-0">jugando</span>' : ''}
+    </div></button>`;
+}
+
+/** Elegir jugador dentro de una categoría. */
+function panelPlayers(cat){
+  const lista = Store.playersIn(cat);
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold mb-1">${CATS[cat].emoji} ${CATS[cat].label}</h2>
+    <p class="font-body text-sm text-[#5A6B86] mb-4">¿Quién juega ahora?</p>
+    <div class="grid gap-2">
+      ${ lista.length ? lista.map(fichaJugador).join('')
+                      : '<p class="font-body text-[#5A6B86] text-center py-4">Todavía no hay nadie en esta categoría.</p>' }
+    </div>
+    <button class="btn3d b-violet w-full mt-4 py-4 text-lg" onclick="panelNuevo('${cat}')">➕ Nuevo jugador</button>
+    <button class="btn3d b-white w-full mt-2 py-3 text-base" onclick="UI.closeSheet(); Home()">Volver</button>`);
+}
+
+/** Alta de jugador: nombre y avatar. */
+function panelNuevo(cat){
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold mb-1">Nuevo jugador</h2>
+    <p class="font-body text-sm text-[#5A6B86] mb-3">Categoría ${CATS[cat].label}.</p>
+
+    <input id="new-name" type="text" maxlength="14" autocomplete="off" placeholder="Nombre"
+      class="font-body w-full text-xl px-4 py-3 rounded-2xl border-[3px] border-[#DCE7F4] focus:border-[var(--mint)] outline-none">
+
+    <p class="font-body text-sm text-[#5A6B86] mt-4 mb-2">Elige un dibujo:</p>
+    <div id="avatar-row" class="grid grid-cols-5 gap-2">
+      ${AVATARS.map((a, i) => `<button class="btn3d ${i === 0 ? 'b-mint' : 'b-white'} py-3 text-2xl avatar-opt" data-a="${a}">${a}</button>`).join('')}
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 mt-5">
+      <button class="btn3d b-white py-4" onclick="panelPlayers('${cat}')">Cancelar</button>
+      <button class="btn3d b-mint py-4" onclick="crearJugador('${cat}')">Crear</button>
+    </div>`);
+
+  let elegido = AVATARS[0];
+  document.querySelectorAll('.avatar-opt').forEach(b => {
+    b.onclick = () => {
+      elegido = b.dataset.a;
+      document.querySelectorAll('.avatar-opt').forEach(x => { x.classList.remove('b-mint'); x.classList.add('b-white'); });
+      b.classList.remove('b-white'); b.classList.add('b-mint');
+      Audio_.tap();
+    };
+  });
+  window.__avatar = () => elegido;
+  setTimeout(() => document.getElementById('new-name').focus(), 150);
+}
+
+function crearJugador(cat){
+  const input = document.getElementById('new-name');
+  const nombre = (input && input.value.trim()) || 'Jugador ' + (Store.playersIn(cat).length + 1);
+  Store.add(nombre, cat, window.__avatar ? window.__avatar() : null);
+  UI.closeSheet();
+  Audio_.level(); FX.burst();
+  cat === 'c35' ? Mode35() : Mode57();
+}
+
+function jugarComo(id){
+  Store.use(id);
+  UI.closeSheet();
+  Store.s.cat === 'c35' ? Mode35() : Mode57();
+}
+
+/** Botón de monedas de la cabecera: lista completa de jugadores. */
+function panelJugador(){
+  const grupo = cat => `
+    <p class="font-body text-sm font-semibold text-[#5A6B86] mt-3 mb-1">${CATS[cat].emoji} ${CATS[cat].label}</p>
+    <div class="grid gap-2">
+      ${ Store.playersIn(cat).map(fichaJugador).join('') ||
+         `<button class="btn3d b-white w-full py-3 font-body text-sm" onclick="panelNuevo('${cat}')">➕ Añadir jugador</button>` }
+    </div>`;
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold">¿Quién juega?</h2>
+    ${grupo('c35')}${grupo('c57')}
+    <button class="btn3d b-blue w-full mt-4 py-4 text-base" onclick="UI.closeSheet(); pantallaRanking()">🏆 Ver clasificación</button>
+    <button class="btn3d b-white w-full mt-2 py-3 text-base" onclick="UI.closeSheet()">Cerrar</button>`);
+}
+
+/* ------------------------------ CLASIFICACIÓN -------------------------- */
+
+/** Resumen del nivel alcanzado, distinto según la categoría. */
+function logro(p){
+  return p.cat === 'c35'
+    ? `Conteo nivel ${p.level4} · ${p.letras.dominadas.length}/${ABC.length} letras`
+    : `Sumas nivel ${p.level6.sumas} · duelo ${p.duelRecord}`;
+}
+
+function pantallaRanking(){
+  Game.stop();
+  UI.closeSheet();
+
+  const orden = [...Store.all.players].sort((a, b) =>
+    (b.trophies.length - a.trophies.length) || (b.coins - a.coins) || (b.correct - a.correct));
+
+  const medalla = i => ['🥇','🥈','🥉'][i] || `${i + 1}.`;
+
+  const fila = (p, i) => `
+    <div class="card p-3 mb-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="w-7 shrink-0 text-center text-lg font-bold">${medalla(i)}</span>
+        <span class="text-3xl shrink-0">${p.avatar}</span>
+        <span class="min-w-0 flex-1">
+          <span class="block font-bold truncate">${esc(p.name)}</span>
+          <span class="block font-body text-xs text-[#5A6B86] truncate">${CATS[p.cat].label} · ${logro(p)}</span>
+        </span>
+        <span class="shrink-0 text-right font-body text-sm leading-tight">
+          <span class="block">🎁 ${p.trophies.length}</span>
+          <span class="block">🪙 ${p.coins}</span>
+        </span>
+      </div>
+      <div class="flex items-center gap-2 mt-2">
+        <span class="font-body text-xs text-[#5A6B86] flex-1 min-w-0 truncate">✅ ${p.correct} · 🎯 ${p.attempts ? Math.round(p.correct / p.attempts * 100) : 0}% · ⏱️ ${fmtTime(p.seconds)}</span>
+        <button class="btn3d b-white shrink-0 px-3 py-2 text-sm" onclick="confirmResetPlayer('${p.id}')" aria-label="Reiniciar puntuación">♻️</button>
+        <button class="btn3d b-white shrink-0 px-3 py-2 text-sm" onclick="confirmDeletePlayer('${p.id}')" aria-label="Borrar jugador">🗑️</button>
+      </div>
+    </div>`;
+
+  UI.render(`<section>
+    <h1 class="text-3xl font-bold text-center mb-1">🏆 Clasificación</h1>
+    <p class="font-body text-sm text-[#5A6B86] text-center mb-4">Ordenada por cofres conseguidos.</p>
+    ${ orden.length ? orden.map(fila).join('')
+       : '<div class="card p-6 text-center font-body text-[#5A6B86]">Todavía no hay jugadores. Crea uno desde la portada.</div>' }
+    <button class="btn3d b-mint w-full mt-3 py-4 text-lg" onclick="Home()">Volver</button>
+  </section>`, 'Clasificación');
+}
+
+function confirmResetPlayer(id){
+  const p = Store.byId(id);
+  if(!p) return;
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold">¿Reiniciar a ${esc(p.name)}?</h2>
+    <p class="font-body text-[#5A6B86] mt-2">Vuelve a empezar de cero: monedas, cofres, niveles y estadísticas. El jugador sigue en la lista.</p>
+    <div class="grid grid-cols-2 gap-2 mt-5">
+      <button class="btn3d b-white py-4" onclick="UI.closeSheet()">Cancelar</button>
+      <button class="btn3d b-coral py-4" onclick="Store.resetPlayer('${id}'); UI.closeSheet(); pantallaRanking()">Reiniciar</button>
+    </div>`);
+}
+
+function confirmDeletePlayer(id){
+  const p = Store.byId(id);
+  if(!p) return;
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold">¿Borrar a ${esc(p.name)}?</h2>
+    <p class="font-body text-[#5A6B86] mt-2">Desaparece del histórico y no se puede recuperar.</p>
+    <div class="grid grid-cols-2 gap-2 mt-5">
+      <button class="btn3d b-white py-4" onclick="UI.closeSheet()">Cancelar</button>
+      <button class="btn3d b-coral py-4" onclick="Store.removePlayer('${id}'); UI.closeSheet(); pantallaRanking()">Borrar</button>
+    </div>`);
+}
+
+function panelMenu(){
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold mb-4">Menú</h2>
+    <div class="grid gap-2">
+      <button class="btn3d b-sun py-4 text-lg" onclick="UI.closeSheet(); Mode35()">🍎 Categoría 3-5 años</button>
+      <button class="btn3d b-violet py-4 text-lg" onclick="UI.closeSheet(); Mode57()">🔢 Categoría 5-7 años</button>
+      <button class="btn3d b-blue py-4 text-lg" onclick="UI.closeSheet(); pantallaRanking()">🏆 Clasificación</button>
+      <button class="btn3d b-white py-4 text-lg" onclick="panelJugador()">👤 Jugadores</button>
+      <button class="btn3d b-blue py-4 text-lg" onclick="panelStats()">📊 Estadísticas</button>
+      <button class="btn3d b-mint py-4 text-lg" onclick="panelChest()">🎁 Cofre de trofeos</button>
+      <button class="btn3d b-white py-4 text-lg" onclick="UI.closeSheet(); pantallaInstalacion()">📲 Instalación</button>
+      <button class="btn3d b-white py-4 text-lg" onclick="UI.closeSheet(); pantallaAcercaDe()">ℹ️ Acerca de</button>
+      <button class="btn3d b-white py-4 text-lg" onclick="toggleSound()">${Audio_.on ? '🔊 Sonido activado' : '🔇 Sonido apagado'}</button>
+      <button class="btn3d b-white py-4 text-base" onclick="UI.closeSheet()">Volver al juego</button>
+    </div>`);
+}
+function toggleSound(){ Audio_.on = !Audio_.on; panelMenu(); }
+
+/* --------------------------- 8. MOTOR DE JUEGO ------------------------- */
+const Game = {
+  current: null,        // función que genera la siguiente pregunta
+  lock: false,
+
+  start(fn, title){
+    this.current = fn;
+    UI.title(title);
+    this.next();
+  },
+  next(){
+    this.lock = false;
+    if(this.current) this.current();
+  },
+  stop(){ this.current = null; },
+
+  /** Respuesta del niño: pinta feedback, puntúa y encadena. */
+  answer(btn, ok, afterCorrect, delayOk = 850){
+    if(this.lock) return;
+    this.lock = true;
+    Store.score(ok);
+
+    if(ok){
+      btn.classList.add('ok');
+      Audio_.good(); Audio_.coin(); FX.burst();
+      setTimeout(() => { if(afterCorrect) afterCorrect(); else continuar(); }, delayOk);
+    }else{
+      btn.classList.add('no');
+      Audio_.bad();
+      setTimeout(() => { btn.classList.remove('no'); this.lock = false; }, 450);
+    }
+  }
+};
+
+/* Premio cada 10 aciertos, en cualquier juego y en las dos categorías. */
+const PREMIO_CADA = 10;
+
+/** Vuelve al menú de la categoría del jugador activo. */
+function volverCategoria(){ Store.s.cat === 'c57' ? Mode57() : Mode35(); }
+
+/** Continúa la partida, parando antes si toca cofre. */
+function continuar(){
+  if(Store.s.hitsSincePrize >= PREMIO_CADA) pantallaPremio();
+  else Game.next();
+}
+
+/** Pantalla de premio: un cofre del baúl y monedas extra. */
+function pantallaPremio(){
+  Store.s.hitsSincePrize = 0;
+  const pendientes = TROPHIES.filter(t => !Store.s.trophies.includes(t.id));
+  let emoji, texto;
+
+  if(pendientes.length){
+    const t = pendientes[0];
+    Store.s.trophies.push(t.id);
+    Store.addCoins(10);
+    emoji = t.emoji;
+    texto = `${t.name} para el cofre de ${esc(Store.s.name)}, y 10 monedas más.`;
+  }else{
+    Store.addCoins(25);
+    emoji = '🪙';
+    texto = 'Ya tiene el cofre completo, así que van 25 monedas.';
+  }
+  Store.save();
+  Audio_.level(); FX.party();
+  say('¡Premio!');
+
+  UI.render(`<section class="card p-6 text-center">
+    <div class="text-7xl bob">${emoji}</div>
+    <h2 class="text-3xl font-bold mt-3">¡${PREMIO_CADA} aciertos!</h2>
+    <p class="font-body text-[#5A6B86] mt-2">${texto}</p>
+    <button class="btn3d b-mint w-full mt-5 py-5 text-xl" onclick="Game.next()">Seguir jugando</button>
+    <button class="btn3d b-white w-full mt-2 py-4" onclick="volverCategoria()">Elegir otro juego</button>
+  </section>`);
+}
+
+/* --------------------------- INSTALACIÓN ------------------------------- */
+function pantallaInstalacion(){
+  Game.stop();
+  UI.closeSheet();
+
+  const instalada = yaInstalada();
+  const puedo = !!promptInstalacion;
+
+  const cabecera = instalada
+    ? `<div class="card p-5 text-center border-l-[10px] border-[var(--mint)]">
+         <div class="text-5xl">✅</div>
+         <h2 class="text-2xl font-bold mt-2">Ya está instalada</h2>
+         <p class="font-body text-[#5A6B86] mt-2">Estás jugando desde la app. No hay nada más que hacer.</p>
+       </div>`
+    : `<div class="card p-5 text-center">
+         <img src="icon-192.png" alt="" class="w-20 h-20 rounded-3xl mx-auto bob">
+         <h1 class="text-2xl font-bold mt-3">Instalar en el móvil</h1>
+         <p class="font-body text-[#5A6B86] mt-2 leading-relaxed">
+           Se añade junto a las demás apps, se abre a pantalla completa sin barra del navegador
+           y funciona aunque no haya internet.
+         </p>
+       </div>`;
+
+  const android = instalada ? '' : `
+    <div class="card p-5 mt-3">
+      <h2 class="text-xl font-bold">🤖 Android · Chrome</h2>
+      <button id="btn-instalar-ya" class="btn3d ${puedo ? 'b-mint' : 'b-white'} w-full mt-3 py-5 text-xl">
+        ${puedo ? '📲 Instalar ahora' : '📲 Intentar instalar'}
+      </button>
+      ${ puedo ? '' : `<p class="font-body text-xs text-[#5A6B86] mt-2">
+           Si el botón no hace nada, juega medio minuto y vuelve aquí: Chrome espera a ver
+           que la web se usa de verdad antes de permitir la instalación.</p>` }
+      <p class="font-body text-sm text-[#5A6B86] mt-4">También a mano:</p>
+      <ol class="font-body mt-2 space-y-2 leading-relaxed">
+        <li>1. Toca los <b>⋮ tres puntos</b> arriba a la derecha de Chrome.</li>
+        <li>2. Elige <b>Añadir a la pantalla de inicio</b> o <b>Instalar aplicación</b>.</li>
+        <li>3. Confirma con <b>Instalar</b>.</li>
+      </ol>
+    </div>`;
+
+  const iphone = instalada ? '' : `
+    <div class="card p-5 mt-3">
+      <h2 class="text-xl font-bold">🍎 iPhone y iPad · Safari</h2>
+      <p class="font-body text-sm text-[#5A6B86] mt-2">
+        Safari no permite instalar con un botón: hay que hacerlo desde el menú de compartir.
+        Tiene que ser Safari, desde Chrome en iPhone no se puede.
+      </p>
+      <ol class="font-body mt-3 space-y-2 leading-relaxed">
+        <li>1. Toca <b>Compartir</b> ⬆️, el cuadrado con la flecha, abajo en el centro.</li>
+        <li>2. Baja en la lista y elige <b>Añadir a pantalla de inicio</b>.</li>
+        <li>3. Pulsa <b>Añadir</b> arriba a la derecha.</li>
+      </ol>
+    </div>`;
+
+  UI.render(`<section>
+    ${cabecera}${android}${iphone}
+    <div class="card p-4 mt-3">
+      <p class="font-body text-sm text-[#5A6B86] leading-relaxed">
+        Instalarla no crea ninguna cuenta ni envía nada: sigue siendo la misma web guardada en el móvil.
+      </p>
+    </div>
+    <button class="btn3d b-mint w-full mt-3 py-4 text-lg" onclick="Home()">Volver</button>
+  </section>`, 'Instalación');
+
+  const btn = document.getElementById('btn-instalar-ya');
+  if(btn) btn.onclick = lanzarInstalacion;
+}
+
+/** Lanza el diálogo nativo si el navegador lo permite. */
+async function lanzarInstalacion(){
+  Audio_.tap();
+  ocultarInstalar();
+
+  if(promptInstalacion){
+    promptInstalacion.prompt();
+    try{
+      const { outcome } = await promptInstalacion.userChoice;
+      if(outcome !== 'accepted') posponerInstalacion(7);
+    }catch(e){}
+    promptInstalacion = null;
+    pantallaInstalacion();                  // refresca el estado de la pantalla
+    return;
+  }
+
+  if(esIOS()) return instruccionesIOS();
+
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold">Todavía no se puede</h2>
+    <p class="font-body text-[#5A6B86] mt-2 leading-relaxed">
+      Chrome solo ofrece instalar cuando ve que la web se usa de verdad. Juega un rato,
+      vuelve a esta pantalla y el botón funcionará. Mientras tanto puedes hacerlo a mano
+      desde los ⋮ tres puntos del navegador.
+    </p>
+    <button class="btn3d b-mint w-full mt-5 py-4 text-lg" onclick="UI.closeSheet()">Entendido</button>`);
+}
+
+/* ---------------------------- ACERCA DE -------------------------------- */
+function pantallaAcercaDe(){
+  Game.stop();
+  UI.closeSheet();
+  UI.render(`<section>
+    <div class="card p-5">
+      <div class="text-center">
+        <div class="text-5xl bob">🎈</div>
+        <h1 class="text-3xl font-bold mt-2">Aprende jugando</h1>
+      </div>
+
+      <p class="font-body mt-4 leading-relaxed">
+        Estos juegos nacieron en casa. Los hice para mis hijos, para acompañarles en lo que
+        estaban aprendiendo: contar, reconocer y trazar las letras, sumar, restar y leer sus
+        primeras palabras. Los he publicado porque, si a ellos les sirven, quizá le sirvan a
+        otros niños también. Son gratuitos y el código está abierto.
+      </p>
+      <p class="font-body mt-3 text-[#5A6B86]">
+        Autor: <b class="text-[#20314A]">Pablo María de Guinea Echevarría</b>
+      </p>
+    </div>
+
+    <div class="card p-5 mt-3 border-l-[10px] border-[var(--coral)]">
+      <h2 class="text-2xl font-bold">⚠️ Una advertencia, y va en serio</h2>
+      <p class="font-body mt-3 leading-relaxed">
+        No dejes a un niño solo con el móvil. Igual que no le dejarías solo en un balcón sin
+        barandilla. Los peligros de la pantalla son muy reales y no avisan.
+      </p>
+      <p class="font-body mt-3 leading-relaxed">
+        El error más fácil de cometer es pensar “a mis hijos eso no les va a pasar” o “los míos
+        son distintos”. Nos lo decimos todos. Y si dejamos que el móvil eduque a nuestros hijos,
+        estaremos vendiendo a nuestros propios hijos.
+      </p>
+      <p class="font-body mt-3 leading-relaxed">
+        Esto está pensado para jugar un rato corto, al lado de un adulto, y apagarlo después.
+        Ningún juego sustituye a un lápiz, un papel y alguien que le haga caso.
+      </p>
+    </div>
+
+    <div class="card p-5 mt-3">
+      <h2 class="text-xl font-bold">Privacidad</h2>
+      <p class="font-body mt-2 leading-relaxed">
+        No hay cuentas ni servidor. Los jugadores, las monedas y las estadísticas se guardan solo
+        en este dispositivo y no se envían a ninguna parte.
+      </p>
+    </div>
+
+    <button class="btn3d b-white w-full mt-3 py-4 text-base" onclick="pantallaInstalacion()">📲 Instalar en el móvil</button>
+    <button class="btn3d b-mint w-full mt-2 py-4 text-lg" onclick="Home()">Volver</button>
+  </section>`, 'Acerca de');
+}
+
+/* --------------------------- 9. PANTALLA DE INICIO --------------------- */
+function Home(){
+  Game.stop();
+  const cuantos = c => Store.playersIn(c).length;
+  const activo = Store.hasPlayer ? Store.s : null;
+
+  UI.render(`
+    <section>
+      <div class="text-center pt-2 pb-5">
+        <div class="text-6xl bob">🎈</div>
+        <h1 class="text-4xl sm:text-5xl font-bold mt-2">Aprende jugando</h1>
+        <p class="font-body text-[#5A6B86] mt-1">Elige la categoría y quién juega.</p>
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2">
+        <button class="btn3d b-sun p-5 text-left" onclick="Mode35()">
+          <div class="flex items-center justify-between">
+            <span class="text-5xl">${CATS.c35.emoji}</span>
+            <span class="font-body text-sm bg-white/35 rounded-xl px-2 py-1">${cuantos('c35')} 👤</span>
+          </div>
+          <div class="text-2xl font-bold mt-2">${CATS.c35.label}</div>
+          <div class="font-body text-sm opacity-80 mt-0.5">${CATS.c35.desc}</div>
+        </button>
+        <button class="btn3d b-violet p-5 text-left" onclick="Mode57()">
+          <div class="flex items-center justify-between">
+            <span class="text-5xl">${CATS.c57.emoji}</span>
+            <span class="font-body text-sm bg-white/25 rounded-xl px-2 py-1">${cuantos('c57')} 👤</span>
+          </div>
+          <div class="text-2xl font-bold mt-2">${CATS.c57.label}</div>
+          <div class="font-body text-sm opacity-90 mt-0.5">${CATS.c57.desc}</div>
+        </button>
+      </div>
+
+      ${ activo ? `
+      <div class="card mt-4 p-4 flex items-center gap-3">
+        <span class="text-3xl">${activo.avatar}</span>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold truncate">${esc(activo.name)} · ${CATS[activo.cat].label}</div>
+          <div class="font-body text-sm text-[#5A6B86] truncate">🪙 ${activo.coins} · ${activo.trophies.length} de ${TROPHIES.length} cofres</div>
+        </div>
+        <button class="btn3d b-mint shrink-0 px-4 py-3" onclick="panelChest()">Cofre</button>
+      </div>` : '' }
+
+      <button class="btn3d b-blue w-full mt-3 py-4 text-lg" onclick="pantallaRanking()">🏆 Clasificación</button>
+      <button class="btn3d b-white w-full mt-2 py-4 text-base" onclick="pantallaAcercaDe()">ℹ️ Acerca de</button>
+    </section>`, 'Aprende jugando');
+}
+
+/* =======================================================================
+   CATEGORÍA 3-5 AÑOS — conteo con progresión automática
+   Cada 10 aciertos sube de nivel: más rango, más opciones, más variedad.
+   ======================================================================= */
+const FRUITS = ['🍎','🍌','🍓','🍇','🍊','🍐','🍉','🍒','🥝','🍍'];
+const LEVELS4 = [
+  { max:5,  opts:3, modes:['contar'] },
+  { max:10, opts:3, modes:['contar','contar'] },
+  { max:12, opts:4, modes:['contar','mezcla'] },
+  { max:15, opts:4, modes:['contar','mezcla','comparar'] },
+  { max:20, opts:4, modes:['mezcla','comparar','contar'] }
+];
+const lv4 = () => LEVELS4[Math.min(Store.s.level4, LEVELS4.length) - 1];
+
+function Mode35(){
+  UI.closeSheet();
+  Game.stop();
+  if(!Store.hasPlayer || Store.s.cat !== 'c35') return panelPlayers('c35');
+  const tile = (emoji, name, desc, fn, cls) => `
+    <button class="btn3d ${cls} p-4 text-left w-full" onclick="${fn}">
+      <div class="flex items-center gap-3">
+        <span class="text-4xl shrink-0">${emoji}</span>
+        <span class="min-w-0">
+          <span class="block text-xl font-bold leading-tight">${name}</span>
+          <span class="block font-body text-sm opacity-85 leading-snug">${desc}</span>
+        </span>
+      </div></button>`;
+
+  UI.render(`<section class="grid gap-3">
+    ${cabeceraJugador('c35')}
+    ${tile('🍎','Contar frutas', `Cuenta y compara · nivel ${Store.s.level4}`, 'Game4Contar()', 'b-sun')}
+    ${tile('🔡','Conocer letras', `Escucha y encuentra · ${Store.s.letras.dominadas.length} de ${ABC.length} aprendidas`, 'GameLetras()', 'b-mint')}
+    ${tile('✏️','Trazar letras', 'Repasa la letra con el dedo', 'GameTrazo()', 'b-blue')}
+    ${ Store.s.letras.dominadas.length
+        ? `<button class="font-body text-sm text-[#5A6B86] underline py-2" onclick="repasarLetras()">Empezar las letras otra vez desde el principio</button>`
+        : '' }
+  </section>`, '3-5 años');
+}
+
+function Game4Contar(){
+  UI.closeSheet();
+  track('juego-contar');
+  Game.start(round4, 'Contar · nivel ' + Store.s.level4);
+}
+
+function grid(items){
+  return `<div class="flex flex-wrap justify-center gap-x-2 gap-y-1 max-w-sm mx-auto">
+    ${items.map(f => `<span class="fruit">${f}</span>`).join('')}</div>`;
+}
+
+function round4(){
+  const cfg = lv4();
+  const mode = pick(cfg.modes);
+  const header = UI.scorebar(
+    `Nivel ${Store.s.level4} · faltan ${PREMIO_CADA - Store.s.hitsSincePrize} para el cofre 🎁`,
+    `✅ ${Store.s.correct}`
+  );
+
+  if(mode === 'comparar'){
+    const fa = pick(FRUITS); let fb = pick(FRUITS.filter(f => f !== fa));
+    let a = rnd(2, cfg.max), b = rnd(2, cfg.max);
+    while(a === b) b = rnd(2, cfg.max);
+    const more = Math.random() < .5;
+    const win = more ? (a > b ? 'A' : 'B') : (a < b ? 'A' : 'B');
+
+    UI.render(`<section>${header}
+      <div class="card p-4 text-center">
+        <h2 class="text-2xl font-bold mb-3">¿Dónde hay ${more ? 'más' : 'menos'}?</h2>
+        <div class="grid grid-cols-2 gap-2">
+          <button class="btn3d b-white p-3" data-k="A">${grid(Array(a).fill(fa))}</button>
+          <button class="btn3d b-white p-3" data-k="B">${grid(Array(b).fill(fb))}</button>
+        </div>
+      </div></section>`);
+
+    app.querySelectorAll('[data-k]').forEach(btn => {
+      btn.onclick = () => Game.answer(btn, btn.dataset.k === win, scored4);
+    });
+    return;
+  }
+
+  // contar / mezcla
+  let items, answer, question;
+  if(mode === 'mezcla'){
+    const target = pick(FRUITS);
+    const other = pick(FRUITS.filter(f => f !== target));
+    answer = rnd(2, cfg.max);
+    const noise = rnd(2, Math.max(3, Math.round(cfg.max / 2)));
+    items = shuffle([...Array(answer).fill(target), ...Array(noise).fill(other)]);
+    question = `¿Cuántos <span class="text-3xl align-middle">${target}</span> hay?`;
+  }else{
+    const f = pick(FRUITS);
+    answer = rnd(1, cfg.max);
+    items = Array(answer).fill(f);
+    question = '¿Cuántas frutas hay?';
+  }
+
+  const opts = options(answer, cfg.opts, 1, Math.max(cfg.max, answer + 2));
+
+  UI.render(`<section>${header}
+    <div class="card p-4">
+      <h2 class="text-2xl font-bold text-center mb-3">${question}</h2>
+      <div class="bg-[#F6F9FD] rounded-2xl py-4 px-2 mb-4 min-h-[120px] flex items-center justify-center">
+        ${grid(items)}
+      </div>
+      <div class="grid grid-cols-${Math.min(opts.length, 4)} gap-2">
+        ${opts.map(o => `<button class="btn3d b-sun py-6 text-3xl" data-v="${o}">${o}</button>`).join('')}
+      </div>
+    </div></section>`);
+
+  app.querySelectorAll('[data-v]').forEach(btn => {
+    btn.onclick = () => Game.answer(btn, +btn.dataset.v === answer, scored4);
+  });
+}
+
+/** Progresión automática del modo 4 años. */
+function scored4(){
+  Store.s.streak4++;
+  if(Store.s.streak4 >= 10 && Store.s.level4 < LEVELS4.length){
+    Store.s.level4++;
+    Store.s.streak4 = 0;
+    Store.addCoins(5);
+    Store.save();
+    UI.title('Contar · nivel ' + Store.s.level4);
+    UI.levelUp(Store.s.level4, `Ahora cuentas hasta ${lv4().max}.`);
+    return;              // closeLevelUp() continúa la partida
+  }
+  Store.save();
+  continuar();
+}
+
+/* =======================================================================
+   CATEGORÍA 3-5 AÑOS — CONOCER LETRAS
+   Tipografía escolar: letra ligada española (Playwrite ES) o letra de palo
+   de lectoescritura (Andika, con la 'a' y la 'g' de una sola panza).
+   ======================================================================= */
+const VOCALES   = ['A','E','I','O','U'];
+const ABC_FACIL = ['A','E','I','O','U','M','P','L','S','T','N','D'];
+const ABC       = [...'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'];
+
+const LEVELS_L = [
+  { pool:VOCALES,   opts:3, modes:['escucha'] },
+  { pool:ABC_FACIL, opts:3, modes:['escucha','escucha','pareja'] },
+  { pool:ABC_FACIL, opts:4, modes:['escucha','pareja','inicial'] },
+  { pool:ABC,       opts:4, modes:['escucha','pareja','inicial'] }
+];
+
+let lastSpoken = '';
+
+const fontClass = () => Store.s.tipo === 'ligada' ? 'ligada' : 'imprenta';
+
+function toggleTipo(){
+  Store.s.tipo = Store.s.tipo === 'ligada' ? 'imprenta' : 'ligada';
+  Store.save();
+  Game.next();
+}
+
+function letterOptions(answer, n, pool){
+  const set = new Set([answer]);
+  const rest = pool.filter(l => l !== answer);
+  let guard = 0;
+  while(set.size < n && guard++ < 120) set.add(pick(rest.length ? rest : ABC));
+  return shuffle([...set]);
+}
+
+function GameLetras(){
+  UI.closeSheet();
+  track('juego-letras');
+  Game.start(roundLetras, 'Letras · nivel ' + Store.s.letras.level);
+}
+
+const nivelL   = () => LEVELS_L[Math.min(Store.s.letras.level, LEVELS_L.length) - 1];
+/** Letras del nivel que el niño todavía no ha acertado. */
+const pendientesL = () => nivelL().pool.filter(l => !Store.s.letras.dominadas.includes(l));
+
+function dominar(letra){
+  if(!Store.s.letras.dominadas.includes(letra)) Store.s.letras.dominadas.push(letra);
+  Store.save();
+}
+
+function repasarLetras(){
+  Store.s.letras.dominadas = [];
+  Store.s.letras.level = 1;
+  Store.save();
+  GameLetras();
+}
+
+/** Muestra la letra en el hueco de la pregunta (refuerzo tras acertar o fallar). */
+function mostrarLetra(l, color){
+  const box = document.getElementById('letra-box');
+  if(box) box.innerHTML = `<div class="${fontClass()} letra-xl" style="color:${color}">${l}</div>`;
+}
+
+function roundLetras(){
+  const cfg  = nivelL();
+  const pend = pendientesL();
+
+  // Todas las letras del nivel acertadas → siguiente nivel o abecedario completo
+  if(!pend.length){
+    if(Store.s.letras.level < LEVELS_L.length){
+      Store.s.letras.level++;
+      Store.addCoins(5);
+      Store.save();
+      UI.title('Letras · nivel ' + Store.s.letras.level);
+      UI.levelUp(Store.s.letras.level, 'Llegan letras nuevas.');
+    }else{
+      pantallaLetrasCompletas();
+    }
+    return;
+  }
+
+  const target = pick(pend);
+  const f = fontClass();
+  let mode = pick(cfg.modes);
+  const palabras = WORDS.filter(w => w[0][0] === target);
+  if(mode === 'inicial' && !palabras.length) mode = 'escucha';
+
+  let prompt, visual;
+
+  if(mode === 'inicial'){
+    const [text, emoji] = pick(palabras);
+    prompt = '¿Por qué letra empieza?';
+    lastSpoken = `¿Por qué letra empieza ${text.toLowerCase()}?`;
+    visual = `<div class="text-7xl">${emoji}</div>`;
+
+  }else if(mode === 'pareja'){
+    prompt = 'Busca esta misma letra en mayúscula';
+    lastSpoken = `Busca la letra ${target}`;
+    visual = `<div class="${f} letra-xl" style="color:var(--violet-d)">${target.toLowerCase()}</div>`;
+
+  }else{
+    prompt = 'Escucha y toca la letra';
+    lastSpoken = `¿Dónde está la letra ${target}?`;
+    visual = `<button class="btn3d b-blue px-6 py-6 text-4xl" onclick="say(lastSpoken)" aria-label="Escuchar la letra">👂</button>`;
+  }
+
+  const opts = letterOptions(target, cfg.opts, cfg.pool);
+  const hechas = cfg.pool.filter(l => Store.s.letras.dominadas.includes(l)).length;
+
+  UI.render(`<section>
+    ${UI.scorebar(`${hechas}/${cfg.pool.length} letras · faltan ${PREMIO_CADA - Store.s.hitsSincePrize} para el cofre 🎁`, `✅ ${Store.s.correct}`)}
+    <div class="card p-4 text-center">
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <button class="btn3d b-white px-3 py-2 text-sm font-body" onclick="toggleTipo()">
+          ${Store.s.tipo === 'ligada' ? '✏️ Letra ligada' : '🔠 Letra de palo'}
+        </button>
+        <button class="btn3d b-white px-3 py-2 text-sm font-body" onclick="say(lastSpoken)">🔊 Repetir</button>
+      </div>
+
+      <h2 class="text-xl font-bold">${prompt}</h2>
+      <div id="letra-box" class="my-4 min-h-[130px] flex flex-col items-center justify-center">${visual}</div>
+
+      <div class="grid grid-cols-${Math.min(opts.length, 4)} gap-2">
+        ${opts.map(o => `<button class="btn3d b-mint py-5 ${f} text-4xl" data-v="${o}">${o}</button>`).join('')}
+      </div>
+    </div></section>`);
+
+  say(lastSpoken);
+
+  let fallos = 0;
+  app.querySelectorAll('[data-v]').forEach(btn => {
+    btn.onclick = () => {
+      if(Game.lock) return;
+      const ok = btn.dataset.v === target;
+      Store.score(ok);
+
+      if(ok){
+        Game.lock = true;
+        btn.classList.add('ok');
+        Audio_.good(); Audio_.coin(); FX.burst();
+        mostrarLetra(target, 'var(--mint-d)');
+        say(`¡Muy bien! Es la ${target}`);
+        dominar(target);                       // no volverá a salir
+        setTimeout(continuar, 1600);
+      }else{
+        btn.classList.add('no');
+        Audio_.bad();
+        fallos++;
+        if(fallos >= 2){                        // a la segunda, se le enseña
+          mostrarLetra(target, 'var(--coral-d)');
+          say(`Esta es la ${target}`);
+        }
+        setTimeout(() => btn.classList.remove('no'), 450);
+      }
+    };
+  });
+}
+
+function pantallaLetrasCompletas(){
+  Game.stop();
+  FX.party(); Audio_.level();
+  UI.render(`<section class="card p-6 text-center">
+    <div class="text-6xl bob">🎓</div>
+    <h2 class="text-3xl font-bold mt-2">¡Te sabes las ${ABC.length} letras!</h2>
+    <p class="font-body text-[#5A6B86] mt-2">Puedes repasarlas desde el principio cuando quieras.</p>
+    <button class="btn3d b-mint w-full mt-5 py-5 text-xl" onclick="repasarLetras()">Repasar otra vez</button>
+    <button class="btn3d b-white w-full mt-2 py-4" onclick="Mode35()">Volver</button>
+  </section>`, 'Letras');
+}
+
+/* =======================================================================
+   CATEGORÍA 3-5 AÑOS — PIZARRA DE TRAZO
+   La letra se muestra con las pautas escolares y el niño la repasa encima.
+   ======================================================================= */
+let traceUpper = true;
+
+function GameTrazo(){
+  UI.closeSheet();
+  track('juego-trazo');
+  Game.current = renderTrazo;
+  UI.title('Trazar letras');
+  renderTrazo();
+}
+
+function traceLetter(){
+  const l = ABC[Store.s.traceIndex % ABC.length];
+  return traceUpper ? l : l.toLowerCase();
+}
+
+function traceMove(step){
+  Store.s.traceIndex = (Store.s.traceIndex + step + ABC.length) % ABC.length;
+  Store.save();
+  renderTrazo();
+}
+
+function traceCase(){
+  traceUpper = !traceUpper;
+  renderTrazo();
+}
+
+function renderTrazo(){
+  const l = traceLetter();
+  const fuente = Store.s.tipo === 'ligada' ? 'guia' : 'imprenta';
+
+  UI.render(`<section>
+    ${UI.scorebar('Repasa la letra con el dedo', `🪙 ${Store.s.coins}`)}
+    <div class="card p-4">
+
+      <div class="flex items-center gap-2 mb-3">
+        <button class="btn3d b-white w-12 h-12 text-xl shrink-0" onclick="traceMove(-1)" aria-label="Letra anterior">‹</button>
+        <button class="btn3d b-blue flex-1 h-12 text-base font-body" onclick="say('${l}')">🔊 Esta es la ${l}</button>
+        <button class="btn3d b-white w-12 h-12 text-xl shrink-0" onclick="traceMove(1)" aria-label="Siguiente letra">›</button>
+      </div>
+
+      <div id="trace-box" class="relative rounded-2xl bg-white border-[3px] border-dashed border-[#CBD8E8] overflow-hidden" style="height:min(42vh,280px)">
+        <div class="absolute inset-0 flex items-center justify-center ${fuente} select-none text-[#CBD8E8]"
+             style="font-size:min(34vh,220px); line-height:1">${l}</div>
+        <canvas id="trace-canvas" class="absolute inset-0 w-full h-full"></canvas>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 mt-3">
+        <button class="btn3d b-white py-4 text-sm font-body" onclick="traceClear()">🧽 Borrar</button>
+        <button class="btn3d b-white py-4 text-sm font-body" onclick="traceCase()">${traceUpper ? 'a minúscula' : 'A MAYÚSCULA'}</button>
+        <button class="btn3d b-mint py-4 text-sm font-body" onclick="traceDone()">✅ ¡Listo!</button>
+      </div>
+
+      <button class="btn3d b-white w-full mt-2 py-3 text-sm font-body" onclick="toggleTipo()">
+        ${Store.s.tipo === 'ligada' ? 'Cambiar a letra de palo' : 'Cambiar a letra ligada'}
+      </button>
+    </div></section>`);
+
+  initTrace();
+}
+
+let traceCtx = null;
+
+function initTrace(){
+  const c = document.getElementById('trace-canvas');
+  if(!c) return;
+  const r = c.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  c.width = Math.round(r.width * dpr);
+  c.height = Math.round(r.height * dpr);
+
+  traceCtx = c.getContext('2d');
+  if(!traceCtx) return;                       // navegador sin canvas: el resto sigue funcionando
+  traceCtx.scale(dpr, dpr);
+  traceCtx.lineWidth = 14;
+  traceCtx.lineCap = 'round';
+  traceCtx.lineJoin = 'round';
+  traceCtx.strokeStyle = '#8367F0';
+
+  let drawing = false;
+  const pos = e => {
+    const b = c.getBoundingClientRect();
+    return [e.clientX - b.left, e.clientY - b.top];
+  };
+
+  c.addEventListener('pointerdown', e => {
+    drawing = true;
+    c.setPointerCapture(e.pointerId);
+    const [x, y] = pos(e);
+    traceCtx.beginPath();
+    traceCtx.moveTo(x, y);
+    traceCtx.lineTo(x + 0.1, y);
+    traceCtx.stroke();
+    Audio_.tap();
+  });
+  c.addEventListener('pointermove', e => {
+    if(!drawing) return;
+    const [x, y] = pos(e);
+    traceCtx.lineTo(x, y);
+    traceCtx.stroke();
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev =>
+    c.addEventListener(ev, () => { drawing = false; }));
+}
+
+function traceClear(){
+  const c = document.getElementById('trace-canvas');
+  if(c && traceCtx) traceCtx.clearRect(0, 0, c.width, c.height);
+}
+
+/** El trazo no se corrige: se premia el intento y no cuenta en la precisión. */
+function traceDone(){
+  Store.addCoins(1);
+  Audio_.coin(); FX.burst();
+  say('¡Muy bien!');
+  setTimeout(() => { traceClear(); traceMove(1); }, 800);
+}
+
+/* =======================================================================
+   CATEGORÍA 5-7 AÑOS — menú de minijuegos
+   ======================================================================= */
+function Mode57(){
+  UI.closeSheet();
+  Game.stop();
+  if(!Store.hasPlayer || Store.s.cat !== 'c57') return panelPlayers('c57');
+  const tile = (emoji, name, desc, fn, cls) => `
+    <button class="btn3d ${cls} p-4 text-left w-full" onclick="${fn}">
+      <div class="flex items-center gap-3">
+        <span class="text-4xl shrink-0">${emoji}</span>
+        <span class="min-w-0">
+          <span class="block text-xl font-bold leading-tight">${name}</span>
+          <span class="block font-body text-sm opacity-85 leading-snug">${desc}</span>
+        </span>
+      </div></button>`;
+
+  UI.render(`<section class="grid gap-3">
+    ${cabeceraJugador('c57')}
+    ${tile('🔢','Vecinos del 100','Encuentra el número que falta: +1, −1, +10, −10','GameVecinos()','b-blue')}
+    ${tile('➕','Sumas y restas','Operaciones con apoyo visual','GameSumas()','b-mint')}
+    ${tile('🤠','Duelo pistolero','30 segundos para ganar al robot','GameDuelo()','b-coral')}
+    ${tile('🔤','Formar palabras','Ordena las letras y lee la palabra','GamePalabras()','b-violet')}
+    <div class="card p-4 font-body text-sm text-[#5A6B86]">
+      Récord del duelo: <b class="text-[#20314A]">${Store.s.duelRecord}</b> ·
+      Precisión general: <b class="text-[#20314A]">${Store.accuracy()}%</b>
+    </div>
+  </section>`, '5-7 años');
+}
+
+/* ----------------------- 6A. VECINOS DE LA TABLA DEL 100 --------------- */
+function GameVecinos(){ track('juego-vecinos'); Game.start(roundVecinos, 'Vecinos del 100'); }
+
+function roundVecinos(){
+  // Centro válido: los vecinos de la fila no se salen de la decena y ±10 cabe en la tabla
+  let centro = rnd(12, 88);
+  if(centro % 10 === 0) centro += 1;
+  if(centro % 10 === 9) centro -= 1;
+
+  // Dos de cada tres rondas son solo anterior y posterior
+  const soloFila = Math.random() < .66;
+
+  const fila = [
+    { k:'left',  v:centro - 1, label:'el anterior'  },
+    { k:'right', v:centro + 1, label:'el siguiente' }
+  ];
+  const columna = [
+    { k:'up',    v:centro - 10, label:'diez menos' },
+    { k:'down',  v:centro + 10, label:'diez más'   }
+  ];
+
+  const q = soloFila ? pick(fila) : pick([...fila, ...columna]);
+  const cell = s => s.k === q.k
+    ? `<div class="cell cell-q" id="slot">?</div>`
+    : `<div class="cell">${s.v}</div>`;
+
+  const tabla = soloFila
+    ? `<div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+         ${cell(fila[0])}<div class="cell cell-c">${centro}</div>${cell(fila[1])}
+       </div>`
+    : `<div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+         <div></div>${cell(columna[0])}<div></div>
+         ${cell(fila[0])}<div class="cell cell-c">${centro}</div>${cell(fila[1])}
+         <div></div>${cell(columna[1])}<div></div>
+       </div>`;
+
+  // Distractores plausibles: las confusiones típicas (±1, ±9, ±10, ±11),
+  // nunca un número que ya esté a la vista en el tablero
+  const visibles = (soloFila ? [...fila] : [...fila, ...columna])
+    .filter(s => s.k !== q.k).map(s => s.v).concat(centro);
+  const candidatos = shuffle([q.v - 1, q.v + 1, q.v - 9, q.v + 9, q.v - 10, q.v + 10, q.v - 11, q.v + 11])
+    .filter(v => v > 0 && v <= 100 && v !== q.v && !visibles.includes(v));
+  const opts = shuffle([q.v, ...candidatos.slice(0, 2)]);
+
+  const faltan = PREMIO_CADA - Store.s.hitsSincePrize;
+
+  UI.render(`<section>
+    ${UI.scorebar(`Faltan ${faltan} para el cofre 🎁`, `✅ ${Store.s.correct}`)}
+    <div class="card p-4">
+      <h2 class="text-xl font-bold text-center mb-1">¿Qué número falta?</h2>
+      <p class="font-body text-center text-sm text-[#5A6B86] mb-4">Es ${q.label} de ${centro}.</p>
+
+      ${tabla}
+
+      <div class="grid grid-cols-3 gap-2 mt-5">
+        ${opts.map(o => `<button class="btn3d b-blue py-6 text-2xl" data-v="${o}">${o}</button>`).join('')}
+      </div>
+    </div></section>`);
+
+  app.querySelectorAll('[data-v]').forEach(btn => {
+    btn.onclick = () => Game.answer(btn, +btn.dataset.v === q.v, () => {
+      const slot = document.getElementById('slot');
+      if(slot){ slot.textContent = q.v; slot.classList.remove('cell-q'); slot.classList.add('cell-c'); }
+      Store.s.vecinosHits++;
+      Store.save();
+      setTimeout(continuar, 500);
+    });
+  });
+}
+
+/* ----------------------------- 6B. SUMAS Y RESTAS ---------------------- */
+function GameSumas(){ track('juego-sumas'); Game.start(roundSumas, 'Sumas y restas'); }
+
+function roundSumas(){
+  const lvl = Store.s.level6.sumas;              // 1..4
+  const top = [10, 20, 50, 99][Math.min(lvl, 4) - 1];
+  const isSum = Math.random() < .55;
+
+  let a, b, res, sign;
+  if(isSum){
+    a = rnd(1, top); b = rnd(1, Math.max(1, top - a)); res = a + b; sign = '+';
+  }else{
+    a = rnd(2, top); b = rnd(1, a); res = a - b; sign = '−';
+  }
+
+  const visual = (a + b) <= 20
+    ? `<div class="flex flex-wrap justify-center gap-1 mb-3">
+         ${Array(a).fill('<span class="text-2xl">🔵</span>').join('')}
+         ${Array(b).fill(`<span class="text-2xl">${isSum ? '🟢' : '❌'}</span>`).join('')}
+       </div>` : '';
+
+  const opts = options(res, 4, 0, res + 12);
+
+  UI.render(`<section>
+    ${UI.scorebar(`Nivel ${lvl} · hasta ${top}`, `🎯 ${Store.accuracy()}%`)}
+    <div class="card p-5 text-center">
+      ${visual}
+      <div class="text-5xl sm:text-6xl font-bold tracking-wide my-3 tabular-nums">${a} ${sign} ${b} = ?</div>
+      <div class="grid grid-cols-2 gap-2 mt-5">
+        ${opts.map(o => `<button class="btn3d b-mint py-6 text-3xl" data-v="${o}">${o}</button>`).join('')}
+      </div>
+    </div></section>`);
+
+  app.querySelectorAll('[data-v]').forEach(btn => {
+    btn.onclick = () => Game.answer(btn, +btn.dataset.v === res, () => {
+      sumasHits++;
+      if(sumasHits % 10 === 0 && Store.s.level6.sumas < 4){
+        Store.s.level6.sumas++;
+        Store.addCoins(5);
+        UI.levelUp(Store.s.level6.sumas, 'Los números ahora son más grandes.');
+        return;
+      }
+      continuar();
+    });
+  });
+}
+let sumasHits = 0;
+
+/* ------------------------------ 6C. DUELO PISTOLERO -------------------- */
+const DUEL_TIME = 30;
+let duel = null;
+
+function GameDuelo(){
+  Game.stop();
+  UI.render(`<section class="card p-6 text-center">
+    <div class="text-6xl bob">🤠</div>
+    <h2 class="text-3xl font-bold mt-2">Duelo pistolero</h2>
+    <p class="font-body text-[#5A6B86] mt-2">Tienes ${DUEL_TIME} segundos. Responde todas las que puedas antes de que el robot se adelante.</p>
+    <p class="font-body text-sm text-[#5A6B86] mt-3">Tu récord: <b class="text-[#20314A]">${Store.s.duelRecord}</b></p>
+    <button class="btn3d b-coral w-full mt-5 py-5 text-2xl" onclick="duelStart()">¡Empezar!</button>
+    <button class="btn3d b-white w-full mt-2 py-4" onclick="Mode57()">Volver</button>
+  </section>`, 'Duelo pistolero');
+}
+
+function duelStart(){
+  track('juego-duelo');
+  duel = { left: DUEL_TIME, hits: 0, timer: null };
+  Game.current = duelRound;                       // mantiene el contador de tiempo activo
+  duel.timer = setInterval(() => {
+    duel.left--;
+    const bar = document.getElementById('duel-bar');
+    const num = document.getElementById('duel-left');
+    if(bar) bar.style.width = (duel.left / DUEL_TIME * 100) + '%';
+    if(num) num.textContent = duel.left;
+    if(duel.left <= 5 && duel.left > 0) Audio_.tick();
+    if(duel.left <= 0) duelEnd();
+  }, 1000);
+  duelRound();
+}
+
+function duelRound(){
+  if(!duel) return;
+  const a = rnd(2, 20), b = rnd(1, 9);
+  const isSum = Math.random() < .5;
+  const res = isSum ? a + b : Math.max(a, b) - Math.min(a, b);
+  const x = isSum ? a : Math.max(a, b), y = isSum ? b : Math.min(a, b);
+  const opts = options(res, 4, 0, res + 10);
+
+  UI.render(`<section>
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-2xl">🤠</span>
+      <div class="flex-1 h-4 rounded-full bg-[#FFE0E5] overflow-hidden">
+        <div id="duel-bar" class="h-full bg-[var(--coral)] transition-[width] duration-1000 ease-linear" style="width:${duel.left / DUEL_TIME * 100}%"></div>
+      </div>
+      <span class="font-semibold tabular-nums w-7 text-right" id="duel-left">${duel.left}</span>
+      <span class="text-2xl">🤖</span>
+    </div>
+    <div class="card p-5 text-center">
+      <div class="font-body text-sm text-[#5A6B86]">Aciertos: <b class="text-[#20314A]">${duel.hits}</b></div>
+      <div class="text-5xl sm:text-6xl font-bold my-4 tabular-nums">${x} ${isSum ? '+' : '−'} ${y}</div>
+      <div class="grid grid-cols-2 gap-2">
+        ${opts.map(o => `<button class="btn3d b-coral py-6 text-3xl" data-v="${o}">${o}</button>`).join('')}
+      </div>
+    </div></section>`);
+
+  app.querySelectorAll('[data-v]').forEach(btn => {
+    btn.onclick = () => {
+      if(!duel) return;
+      const ok = +btn.dataset.v === res;
+      Store.score(ok);
+      if(ok){
+        duel.hits++;
+        btn.classList.add('ok'); Audio_.good();
+        setTimeout(() => { if(duel) duelRound(); }, 220);
+      }else{
+        btn.classList.add('no'); Audio_.bad();
+        setTimeout(() => btn.classList.remove('no'), 380);
+      }
+    };
+  });
+}
+
+function duelEnd(){
+  clearInterval(duel.timer);
+  const hits = duel.hits;
+  duel = null;
+  Game.stop();
+
+  const record = hits > Store.s.duelRecord;
+  if(record) Store.s.duelRecord = hits;
+  Store.addCoins(Math.round(hits / 2));
+  Store.save();
+  if(record && hits > 0){ FX.party(); Audio_.level(); } else { FX.burst(); }
+
+  UI.render(`<section class="card p-6 text-center">
+    <div class="text-6xl">${hits >= 10 ? '🏆' : hits >= 5 ? '🎉' : '🤠'}</div>
+    <h2 class="text-3xl font-bold mt-2">${hits} aciertos</h2>
+    <p class="font-body text-[#5A6B86] mt-1">${record && hits > 0 ? '¡Nuevo récord!' : 'Récord actual: ' + Store.s.duelRecord}</p>
+    <p class="font-body text-sm text-[#5A6B86] mt-2">Has ganado ${Math.round(hits / 2)} monedas extra.</p>
+    <button class="btn3d b-coral w-full mt-5 py-5 text-2xl" onclick="duelStart()">Otra vez</button>
+    <button class="btn3d b-white w-full mt-2 py-4" onclick="Mode57()">Elegir otro juego</button>
+  </section>`);
+}
+
+/* ----------------------------- 6D. FORMAR PALABRAS --------------------- */
+const WORDS = [
+  ['SOL','☀️',1],['PAN','🍞',1],['PEZ','🐟',1],['OSO','🐻',1],['MAR','🌊',1],
+  ['LUNA','🌙',1],['CASA','🏠',1],['GATO','🐱',1],['PATO','🦆',1],['RANA','🐸',1],
+  ['FLOR','🌸',2],['MANO','✋',2],['NUBE','☁️',2],['PERRO','🐶',2],['LIBRO','📚',2],
+  ['COCHE','🚗',2],['ARBOL','🌳',2],['QUESO','🧀',2],['LECHE','🥛',2],['BARCO','⛵',3],
+  ['PLATANO','🍌',3],['MANZANA','🍎',3],['ELEFANTE','🐘',3],['MARIPOSA','🦋',3]
+];
+
+let word = null;
+
+function GamePalabras(){ track('juego-palabras'); Game.start(roundPalabras, 'Formar palabras'); }
+
+function roundPalabras(){
+  const lvl = Store.s.level6.palabras;
+  const pool = WORDS.filter(w => w[2] <= lvl + 1);
+  const [text, emoji] = pick(pool.length ? pool : WORDS);
+
+  word = { text, built: [], used: [] };
+  const letters = shuffle(text.split(''));
+
+  UI.render(`<section>
+    ${UI.scorebar('Ordena las letras', `✅ ${Store.s.correct}`)}
+    <div class="card p-5 text-center">
+      <div class="text-7xl bob">${emoji}</div>
+
+      <div id="slots" class="flex flex-wrap justify-center gap-1.5 my-5"></div>
+
+      <div id="tiles" class="flex flex-wrap justify-center gap-2">
+        ${letters.map((l, i) => `<button class="btn3d b-violet w-14 h-14 text-2xl" data-i="${i}" data-l="${l}">${l}</button>`).join('')}
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mt-5">
+        <button class="btn3d b-white py-4" onclick="wordBack()">⌫ Borrar</button>
+        <button class="btn3d b-white py-4" onclick="Game.next()">⏭ Otra palabra</button>
+      </div>
+    </div></section>`);
+
+  paintSlots();
+  app.querySelectorAll('#tiles [data-i]').forEach(btn => {
+    btn.onclick = () => {
+      if(btn.disabled) return;
+      btn.disabled = true; btn.style.opacity = .25;
+      word.built.push(btn.dataset.l);
+      word.used.push(btn);
+      Audio_.tap();
+      paintSlots();
+      checkWord();
+    };
+  });
+}
+
+function paintSlots(){
+  const box = document.getElementById('slots');
+  if(!box || !word) return;
+  box.innerHTML = word.text.split('').map((_, i) => {
+    const l = word.built[i];
+    return `<span class="inline-flex items-center justify-center w-12 h-14 rounded-xl border-[3px] text-2xl font-bold
+      ${l ? 'bg-[#F1ECFF] border-[var(--violet)] text-[var(--violet-d)]' : 'bg-[#F6F9FD] border-dashed border-[#CBD8E8] text-transparent'}">${l || '·'}</span>`;
+  }).join('');
+}
+
+function wordBack(){
+  if(!word || !word.built.length) return;
+  word.built.pop();
+  const btn = word.used.pop();
+  btn.disabled = false; btn.style.opacity = 1;
+  Audio_.tap();
+  paintSlots();
+}
+
+function checkWord(){
+  if(word.built.length < word.text.length) return;
+  const ok = word.built.join('') === word.text;
+  Store.score(ok);
+
+  if(ok){
+    Audio_.good(); Audio_.coin(); FX.burst();
+    palabrasHits++;
+    if(palabrasHits % 8 === 0 && Store.s.level6.palabras < 3){
+      Store.s.level6.palabras++;
+      Store.addCoins(5);
+      UI.levelUp(Store.s.level6.palabras, 'Llegan palabras más largas.');
+      return;
+    }
+    setTimeout(continuar, 900);
+  }else{
+    Audio_.bad();
+    const slots = document.getElementById('slots');
+    slots.style.animation = 'shake .35s ease';
+    setTimeout(() => {
+      slots.style.animation = '';
+      word.used.forEach(b => { b.disabled = false; b.style.opacity = 1; });
+      word.built = []; word.used = [];
+      paintSlots();
+    }, 420);
+  }
+}
+let palabrasHits = 0;
+
+/* --------------------------- 10. CABECERA: EVENTOS --------------------- */
+document.getElementById('btn-menu').onclick  = () => { Audio_.tap(); panelMenu(); };
+document.getElementById('btn-stats').onclick = () => { Audio_.tap(); panelStats(); };
+document.getElementById('btn-chest').onclick = () => { Audio_.tap(); panelChest(); };
+document.getElementById('coin-chip').onclick = () => { Audio_.tap(); panelJugador(); };
+document.getElementById('btn-home').onclick  = () => { Audio_.tap(); UI.closeSheet(); if(duel){ clearInterval(duel.timer); duel = null; } Home(); };
+document.getElementById('overlay').onclick   = e => { if(e.target.id === 'overlay') UI.closeSheet(); };
+
+/* --------------------- 10b. ESTADÍSTICAS DE USO ------------------------
+   Agregadas y anónimas: cuántas visitas, qué juegos se abren y en qué tramo
+   de minutos se queda la gente. Ningún dato del niño sale del teléfono.    */
+function track(evento){
+  try{
+    if(window.goatcounter && window.goatcounter.count)
+      window.goatcounter.count({ path: evento, title: evento, event: true });
+  }catch(e){}
+}
+
+(function estadisticas(){
+  if(!window.GC_CODE) return;                     // sin código, no se mide nada
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = '//gc.zgo.at/count.js';
+  s.setAttribute('data-goatcounter', `https://${window.GC_CODE}.goatcounter.com/count`);
+  document.head.appendChild(s);
+
+  const inicio = Date.now();
+  window.addEventListener('pagehide', () => {
+    const min = (Date.now() - inicio) / 60000;
+    const tramo = min < 1 ? '0-1' : min < 5 ? '1-5' : min < 15 ? '5-15' : min < 30 ? '15-30' : '30+';
+    track('sesion-' + tramo + '-min');
+  }, { once:true });
+})();
+
+/* ------------------- 10c. INVITACIÓN A INSTALAR ------------------------
+   Chrome y Edge avisan con 'beforeinstallprompt' y permiten lanzar el
+   diálogo nativo. Safari en iPhone no lo tiene: ahí se explica a mano.    */
+const PWA_KEY = 'aprende-jugando-instalar';
+let promptInstalacion = null;
+
+const yaInstalada = () => {
+  try{
+    if(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+  }catch(e){}
+  return window.navigator.standalone === true;    // Safari en iPhone
+};
+
+const esIOS = () =>
+  /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+function posponerInstalacion(dias){
+  try{ localStorage.setItem(PWA_KEY, String(Date.now() + dias * 86400000)); }catch(e){}
+}
+function tocaPreguntar(){
+  try{
+    const hasta = Number(localStorage.getItem(PWA_KEY) || 0);
+    return Date.now() > hasta;
+  }catch(e){ return true; }
+}
+function ocultarInstalar(){ document.getElementById('install-bar').classList.add('hidden'); }
+
+function mostrarInstalar(forzado){
+  if(yaInstalada()) return;
+  if(!forzado && !tocaPreguntar()) return;
+  if(esIOS() && !promptInstalacion){
+    document.getElementById('install-text').textContent =
+      'Añádelo a la pantalla de inicio y se abrirá como una app.';
+  }
+  document.getElementById('install-bar').classList.remove('hidden');
+}
+
+/** Safari no deja instalar por código: hay que enseñar los pasos. */
+function instruccionesIOS(){
+  UI.openSheet(`
+    <h2 class="text-2xl font-bold mb-3">Añadir a la pantalla de inicio</h2>
+    <ol class="font-body space-y-3 text-[#20314A]">
+      <li>1. Toca el botón <b>Compartir</b> ⬆️ de Safari, abajo en el centro.</li>
+      <li>2. Baja en la lista y elige <b>Añadir a pantalla de inicio</b>.</li>
+      <li>3. Pulsa <b>Añadir</b>. Te aparecerá el globo 🎈 junto al resto de apps.</li>
+    </ol>
+    <button class="btn3d b-mint w-full mt-5 py-4 text-lg" onclick="UI.closeSheet()">Entendido</button>`);
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();                       // se lanza cuando el usuario decida
+  promptInstalacion = e;
+  setTimeout(() => mostrarInstalar(false), 8000);
+});
+
+window.addEventListener('appinstalled', () => {
+  ocultarInstalar();
+  promptInstalacion = null;
+  posponerInstalacion(3650);
+  FX.burst();
+});
+
+document.getElementById('install-no').onclick = () => {
+  Audio_.tap();
+  ocultarInstalar();
+  posponerInstalacion(7);                   // no insistir en una semana
+};
+
+document.getElementById('install-yes').onclick = () => lanzarInstalacion();
+
+// En iPhone no hay evento: se ofrece igualmente al rato
+if(esIOS() && !yaInstalada()) setTimeout(() => mostrarInstalar(false), 12000);
+
+/* ------------------------------ 11. PWA -------------------------------- */
+(function setupPWA(){
+  // El manifest y los iconos son archivos reales del repositorio (manifest.webmanifest,
+  // icon-192.png, icon-512.png): es lo que exige Chrome para ofrecer la instalación.
+  // Aquí solo queda registrar el service worker, que da el funcionamiento sin conexión.
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
+
+/* ------------------------------ 12. ARRANQUE ---------------------------
+   El arranque va al final y protegido: un fallo del entorno (manifest, audio)
+   nunca debe dejar la pantalla en blanco.                                   */
+Store.load();
+UI.paintCoins();
+Home();
+</script>
+</body>
+</html>
