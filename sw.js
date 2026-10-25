@@ -3,7 +3,7 @@
    IMPORTANTE: al subir una versión nueva del juego, cambia el número de CACHE
    (v1 → v2). Si no, los móviles seguirán usando la copia guardada. */
 
-const CACHE = 'aprende-jugando-v2';
+const CACHE = 'aprende-jugando-v3';
 
 // Lo mínimo para que arranque sin red
 const BASE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];

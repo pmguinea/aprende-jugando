@@ -1884,7 +1884,7 @@ function instruccionesIOS(){
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();                       // se lanza cuando el usuario decida
   promptInstalacion = e;
-  setTimeout(() => mostrarInstalar(false), 8000);
+  setTimeout(() => mostrarInstalar(false), 500);   // en cuanto el navegador avisa
 });
 
 window.addEventListener('appinstalled', () => {
@@ -1902,8 +1902,8 @@ document.getElementById('install-no').onclick = () => {
 
 document.getElementById('install-yes').onclick = () => lanzarInstalacion();
 
-// En iPhone no hay evento: se ofrece igualmente al rato
-if(esIOS() && !yaInstalada()) setTimeout(() => mostrarInstalar(false), 12000);
+// En iPhone no hay evento: se ofrece igualmente nada más abrir
+if(esIOS() && !yaInstalada()) setTimeout(() => mostrarInstalar(false), 1200);
 
 /* ------------------------------ 11. PWA -------------------------------- */
 (function setupPWA(){
